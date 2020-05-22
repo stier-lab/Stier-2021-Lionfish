@@ -1,2 +1,2 @@
 # Stier-2020-Lionfish
-A summary of data analysis from panama lionfish experiments 
+A summary of data analysis from panama lionfish experiments. Paper led by Jameal Samhouri. 
