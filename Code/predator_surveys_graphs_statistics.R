@@ -4,6 +4,9 @@
 
 library(tidyverse) 
 library(nlme)
+library(gt)
+library(lme4)
+library(janitor)
 
 # plot coral head focused predator survey data
 countdat <- read.csv("data/2015 field survey fish counts.csv", header=TRUE)
@@ -99,6 +102,9 @@ df2 <-  gather(df1, key, value, -site, - coralsize)
 m1<-glm(value~key,family="binomial",data=df2)
 summary(m1)
 
+m2<-glmer(value~key+(1|site),family="binomial",data=df2)
+summary(m2)
+
 
 #######
 ## Plot proportion of reefs where lionfish are observed
@@ -108,12 +114,28 @@ df3<-data.frame(c("Native","Lionfish"),tapply(df2$value,list(df2$key),sum)/24
 )
 names(df3)<- c("Predator","Proportion")
 
-
 ggplot(df3,aes(x=Predator,y=Proportion))+
 geom_bar(stat="identity")+
 theme_bw()
 
+df4<-data.frame(
+    "incidence"=aggregate(df2$value,by=list(Category=df2$site,df2$key),FUN=sum))
 
+df4$reefs_observed = aggregate(df2$value,by=list(Category=df2$site,df2$key),FUN=length)$x
+df4$prop_occupancy = (aggregate(df2$value,by=list(Category=df2$site,df2$key),FUN=sum)$x/
+  aggregate(df2$value,by=list(Category=df2$site,df2$key),FUN=length)$x)
+
+names(df4) <-c("site","type","observed","counted","fraction")
+
+
+ggplot(df4,aes(x=type,y=fraction))+
+  geom_bar(stat="identity",aes(fill=type))+
+  theme_classic()+
+  facet_wrap(~site)+
+  xlab("Predator Group")+
+  scale_fill_manual(values=c("gray","#8FBC8F"))
+
+ggsave("figures/pred_survey/pred_survey_incidence_ native vs invasive predators.png")
 
 ### by site
 ggplot(dat.predator.comparison, aes(x=species,y=log(density+1))) + 
@@ -144,9 +166,9 @@ ggplot(dat.predator.comparison, aes(x=species,y=log(density+1))) +
     legend.position="none"
   )
 
-m1 <- lme(data=dat.predator.comparison,log(density+1) ~ species, random= ~1|site)
-summary(m1)
-anova(m1,test="F")
+m3 <- lme(data=dat.predator.comparison,log(density+1) ~ species, random= ~1|site)
+summary(m3)
+anova(m3,test="F")
 
 # Linear mixed-effects model fit by REML
 # Data: dat.predator.comparison 
@@ -178,6 +200,21 @@ anova(m1,test="F")
 # Number of Groups: 3 
 
 dat.predator.comparison$native.invasive <- c(rep("invasive",24),rep("native",nrow(dat.predator.comparison)-24))
+dat.predator.comparison$incidence <- ifelse(dat.predator.comparison$density ==0,0,1)
+
+#total samples by site
+dat.predator.comparison %>%
+ group_by(site,native.invasive) %>%
+ tally()
+
+group_by(dat.predator.comparison, site) %>% mutate(percent = incidence/sum(incidence)))
+
+predtab<-
+  dat.predator.comparison%>%
+  group_by(site,native.invasive)%>%
+  summarize(n=n(),sum(incidence))
+
+predtab %>% gt()
 
 m2 <- lme(data=dat.predator.comparison,log(density+1) ~ native.invasive, random= ~1|site)
 summary(m2)
