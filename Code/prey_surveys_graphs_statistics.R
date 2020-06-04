@@ -25,20 +25,13 @@ names(countdat) <- gsub("1","d",names(countdat))
 
 # http://www.cookbook-r.com/Graphs/Plotting_distributions_(ggplot2)/
 
-histogram_COPE <- ggplot(countdat, aes(x=c.personatus.d)) +
+ggplot(countdat, aes(x=c.personatus.d)) +
   geom_histogram(binwidth=25, colour = "black", fill="white") +
   ylab("Number of coral heads") +
   xlab(expression(paste(italic("Coryphopterus personatus"), " density (no. ", m^-2,")", sep=""))) +
   theme_classic()
 
-histogram_COPE
-
-setwd("/Users/jameal.samhouri/Dropbox/Lionfish Panama/Figures")
-pdf("histogram_COPE.pdf")
-histogram_COPE
-dev.off()
-
-histogram_COPE_bysite <- ggplot(countdat, aes(x=c.personatus.d)) +
+ ggplot(countdat, aes(x=c.personatus.d)) +
   geom_histogram(binwidth=25, colour = "black", fill="white") +
   facet_wrap(~site) +
   ylab("Number of coral heads") +
@@ -63,46 +56,17 @@ levels(dat.comparison$species) <- c("Coryphopterus personatus","All other prey")
 
 
 ggplot(dat.comparison, aes(x=species,y=log(density+1))) + 
-  geom_boxplot() +
+  geom_boxplot(aes(fill=species)) +
   #stat_summary(fun.y="median",geom="point") +
   xlab("") +
   ylab("Density\nlog (x+1) transformed\n") +
-  theme_bw() +
-  theme_classic()
+  theme_classic()+
+  facet_wrap(~site)+
+  scale_fill_manual(values=c("gray","orange"))
 
 
-setwd("/Users/jameal.samhouri/Dropbox/Lionfish Panama/Figures")
-pdf("plot_COPEs_otherprey.pdf")
-plot_COPEs_otherprey
-dev.off()
+ggsave("figures/prey_survey/boxplot_COPE_otherprey.png")
 
-### faceted by site
-
-dat.comparison <- melt(countdat[,c(3,28,48)])
-names(dat.comparison) <- c("site","species","density") 
-levels(dat.comparison$species) <- c("Coryphopterus personatus","All other prey")
-
-plot_COPEs_otherprey_bysite <- ggplot(dat.comparison, aes(x=species,y=log(density+1))) + 
-  geom_boxplot() +
-  facet_wrap(~site) +
-  #stat_summary(fun.y="median",geom="point") +
-  xlab("") +
-  ylab("Density\nlog (x+1) transformed\n") +
-  theme_bw() +
-  theme(
-    text=element_text(size=14),
-    panel.grid.major = element_blank(),
-    panel.grid.minor = element_blank(),
-    panel.background = element_rect(fill = NA,colour = "black",size=2),
-    legend.position="none"
-  )
-plot_COPEs_otherprey_bysite
-
-
-setwd("/Users/jameal.samhouri/Dropbox/Lionfish Panama/Figures")
-pdf("plot_COPEs_otherprey_by_site.pdf")
-plot_COPEs_otherprey_bysite
-dev.off()
 
 m1 <- lme(log(density+1) ~ species, random = ~1|site, data=dat.comparison)
 summary(m1)
