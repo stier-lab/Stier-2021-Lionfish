@@ -6,7 +6,6 @@ library(tidyverse)
 library(nlme)
 library(gt)
 library(lme4)
-library(janitor)
 
 # plot coral head focused predator survey data
 countdat <- read.csv("data/2015 field survey fish counts.csv", header=TRUE)
