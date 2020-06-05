@@ -132,6 +132,7 @@ ggplot(df4,aes(x=type,y=fraction))+
   theme_classic()+
   facet_wrap(~site)+
   xlab("Predator Group")+
+  ylab("Proportion of reefs occupied")+
   scale_fill_manual(values=c("gray","#8FBC8F"))
 
 ggsave("figures/pred_survey/pred_survey_incidence_ native vs invasive predators.png")

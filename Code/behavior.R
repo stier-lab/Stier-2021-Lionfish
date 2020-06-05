@@ -29,7 +29,7 @@ ggplot(df, aes(x= factor(ttt), y=propvis)) +
   ylab("Proportion Visible")+
   ggtitle("")
 
-ggsave("figures/behaviro/propvisible.png")
+ggsave("figures/behavior/propvisible.png")
 
 
 x2<-drop.levels(subset(x,ttt!="Control"))
@@ -89,14 +89,14 @@ ggsave("figures/behavior/visible.png")
 
 #ignoring individual tank effects 
 ggplot(x, aes(x= factor(ttt), y=num_vis)) +
-  stat_summary(aes(fill=ttt),colour="black",fun.y = mean, geom = "bar", position="dodge")+
+  stat_summary(aes(fill=ttt),colour="black",fun = mean, geom = "bar", position="dodge")+
   stat_summary(fun.data = mean_cl_normal, geom = "linerange")+
-  theme_acs()+
+  theme_classic()+
   xlab("Treatment")+
   ylab("Number Visible")+
   ggtitle("#Hiding_ignoring_replication")
 
-ggsave("#visibile_ignoringtankpseudo.pdf")
+ggsave("figures/behavior/visibile_ignoringtankpseudo.pdf")
 
 #set orthogonal contrasts, treatment versus control and btw preds
 x2<-drop.levels(subset(x,ttt!="Control"))

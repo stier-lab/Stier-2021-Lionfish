@@ -1,8 +1,10 @@
 
 library(tidyverse) 
+library(ggridges)
 library(nlme)
 library(gt)
 library(lme4)
+library(scales)
 
 
 #######
@@ -66,6 +68,46 @@ ggplot(dat.comparison, aes(x=species,y=log(density+1))) +
 
 
 ggsave("figures/prey_survey/boxplot_COPE_otherprey.png")
+
+dat.comparison2 <- dat.comparison %>%
+  filter(density>0)
+
+#ridgeline plot alternative with no zeros 
+  ggplot(data=dat.comparison2,aes(x=density, y=site,point_color=species,color=species,fill=species)) +
+  geom_density_ridges(
+    jittered_points = TRUE, scale = .95, rel_min_height = .01,
+    point_shape = "|", point_size = 3, size = 0.25,
+    position = position_points_jitter(height = 0),
+    aes(x = density), 
+    alpha = .8, color = "white")+
+    theme_ridges(center=TRUE)+
+    scale_fill_manual(values = c("gray", "orange"), labels = c("Goby", "Other prey")) +
+    scale_color_manual(values = c("gray", "orange"), guide = "none") +
+    scale_discrete_manual("point_color", values = c("gray", "orange"), guide = "none") +
+    xlab("Prey density [fisher per m2")+
+    ylab("Reef")+
+    # scale_x_continuous(trans=log10_trans())
+    scale_x_log10(breaks = trans_breaks("log10", function(x) 10^x),
+                labels = trans_format("log10", math_format(10^.x)))   
+  
+  ggsave("figures/prey_survey/ridgeline_COPE_otherprey.png")
+  
+  
+  
+  
+  ggplot(Aus_athletes, aes(x = height, y = sport, color = sex, point_color = sex, fill = sex)) +
+    geom_density_ridges(
+      jittered_points = TRUE, scale = .95, rel_min_height = .01,
+      point_shape = "|", point_size = 3, size = 0.25,
+      position = position_points_jitter(height = 0)
+    
+
+ggplot(dat.comparison, aes(x = `Mean Temperature [F]`, y = Month, fill = stat(x))) +
+  geom_density_ridges_gradient(scale = 3, rel_min_height = 0.01) +
+  scale_fill_viridis_c(name = "Temp. [F]", option = "C") +
+  labs(title = 'Temperatures in Lincoln NE in 2016')+
+
+
 
 
 m1 <- lme(log(density+1) ~ species, random = ~1|site, data=dat.comparison)
