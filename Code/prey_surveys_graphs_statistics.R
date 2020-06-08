@@ -1,4 +1,6 @@
 
+
+
 library(tidyverse) 
 library(ggridges)
 library(nlme)
@@ -75,6 +77,8 @@ dat.comparison2 <- dat.comparison %>%
 #ridgeline plot alternative with no zeros 
   ggplot(data=dat.comparison2,aes(x=density, y=site,point_color=species,color=species,fill=species)) +
   geom_density_ridges(
+    quantile_lines=TRUE,
+    quantile_fun=function(x,...)mean(x),
     jittered_points = TRUE, scale = .95, rel_min_height = .01,
     point_shape = "|", point_size = 3, size = 0.25,
     position = position_points_jitter(height = 0),
@@ -109,9 +113,15 @@ ggplot(dat.comparison, aes(x = `Mean Temperature [F]`, y = Month, fill = stat(x)
 
 
 
-
 m1 <- lme(log(density+1) ~ species, random = ~1|site, data=dat.comparison)
 summary(m1)
+
+m2<-glmer(log(density+1) ~ species, random = ~1|site,data=dat.comparison)
+summary(m2)
+
+m3 <-lmer(log(density+1) ~species+(1|site),data=dat.comparison)
+
+
 
 # Linear mixed-effects model fit by REML
 # Data: dat.comparison 

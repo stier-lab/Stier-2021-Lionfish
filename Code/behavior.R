@@ -75,6 +75,8 @@ df<-melt(df)
 df<-subset(df,value!="NA")
 names(df)<-c("camera","ttt","num_vis")
 
+
+
 #Averageing across each camera(tank)
 
 ggplot(df, aes(x= factor(ttt), y=num_vis)) +
@@ -97,6 +99,22 @@ ggplot(x, aes(x= factor(ttt), y=num_vis)) +
   ggtitle("#Hiding_ignoring_replication")
 
 ggsave("figures/behavior/visibile_ignoringtankpseudo.pdf")
+
+
+ggplot(x, aes(x= ttt, y=num_vis))+
+  geom_jitter(aes(color=cam_name))+
+  theme_classic()+
+  xlab("Treatment")+
+  ylab("Number Visible")+
+  ggtitle("Hiding by camera")+
+  scale_colour_viridis(discrete = TRUE) 
+
+ggsave("figures/behavior/visibile_bycamera.pdf")
+# 
+# x %>% 
+#   group_by(ttt, cat = cam_name) %>% 
+#   summarise(sumr = sum(Partner.Revenue),
+#             len = mean(Video.Duration..sec.))
 
 #set orthogonal contrasts, treatment versus control and btw preds
 x2<-drop.levels(subset(x,ttt!="Control"))

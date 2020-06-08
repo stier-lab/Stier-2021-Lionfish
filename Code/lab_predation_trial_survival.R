@@ -1,6 +1,6 @@
 library(tidyverse)
 library(gdata)
-library(maps)
+library(gt)
 
 
 ############################################
@@ -50,27 +50,47 @@ ggplot(x,aes(x=eaten,group=ttt))+
 hist(asin(sqrt(x$mort)))
 boxplot(asin(sqrt(x$mort))~ttt)
 
+
+ggplot(x,aes(x=ttt_2,y=mort,colour=ttt_2))+
+  geom_jitter()+
+  facet_wrap(~trial,ncol=1)
+  ggsave("figures/survival/survival_by_trial.png")
+
+
+tab_n<-
+  x%>%
+  group_by(ttt_2,trial)%>%
+  summarize(n=n(),mean(mort))
+
+tab_n_vis <- tab_n %>% gt()
+
+
+# gtsave(tab_n_vis,"figures/survival/survival_by_trial.png")
+
+
 #set up table of killed and initial 
 stab<-data.frame("eaten"=x$eaten,"survived"=x$t0_alive,"trial"=x$trial,"ttt"=x$ttt)
 ttt<-drop.levels(x$ttt)
 survtab<-cbind(x$eaten,x$t0_alive)
 
 
+
 #set orthogonal contrasts, treatment versus control and btw preds
 contrasts(stab$ttt)=cbind(c(-2,1,1),c(0,-1,1))
 contrasts(stab$ttt)
 
-m1<-glm(survtab~ttt,family=binomial)
+contrasts(ttt) = cbind(c(-2,1,1),c(0,-1,1))
+
+m1<-glm(survtab~ttt,family=quasibinomial)
 summary(m1)
 
 #trying to fit with trial as random effect
 m2<-glmer(survtab~ttt+(1|trial),family="binomial",data=x)
 summary(m2)
 
+#double check that 
 
 kruskal.test(x$mort~x$ttt)
-
-
 
 
 #Chi-squared = 17.7279
@@ -78,7 +98,15 @@ kruskal.test(x$mort~x$ttt)
 
 xl<-subset(x,ttt=="Lionfish")
 xg<-subset(x,ttt=="Grouper")
+xc<-subset(x,ttt=="Control")
+xs<-subset(x,ttt=="Scarus")
+
 wilcox.test(xg$mort,xl$mort)
+wilcox.test(xg$mort,xc$mort)
+wilcox.test(xc$mort,xl$mort)
+
+
+
 
 
 
