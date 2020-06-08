@@ -20,7 +20,7 @@ tapply(x$mort,list(x$ttt_2),mean)
 tapply(x$mort,list(x$ttt),mean)
 
 ggplot(x, aes(x= factor(ttt), y=mort)) +
-  stat_summary(aes(fill=ttt),colour="black",fun.y = mean, geom = "bar", position="dodge")+
+  stat_summary(aes(fill=ttt),colour="black",fun = mean, geom = "bar", position="dodge")+
   stat_summary(fun.data = mean_cl_normal, geom = "linerange")+
   theme_classic()+
   xlab("Treatment")+
@@ -30,7 +30,33 @@ ggplot(x, aes(x= factor(ttt), y=mort)) +
 #p-value = 0.0001414
 , wilcox_lfvsgrouper:W = 81.5, p-value = 0.6593")
 
-ggsave("Survivalplot_v1.pdf")
+ggsave("figures/survival/Survivalplot_v1.pdf")
+
+
+ggplot(x, aes(x= factor(ttt), y=mort)) +
+  geom_jitter(width=0.1,height=0,aes(color=ttt,pch=ttt))+
+  stat_summary(colour="black",fun = mean, geom = "point", size=3)+
+  stat_summary(fun.data = mean_cl_normal, geom = "linerange")+
+  theme_classic()+
+  theme(axis.text=element_text(size=12),
+        axis.title=element_text(size=14,face="bold"))+
+  xlab("Treatment")+
+  ylab("Proportion Mortality")+
+  scale_color_manual(values = c("#00AFBB", "#E7B800","gray"),labels = c("Control", "Grouper","Lionfish"))
+
+ggsave("figures/survival/Survivalplot_v2.png")
+
+# 
+# ggdensity(x, x = "mort",
+#           add = "mean", rug = TRUE,
+#           color = "ttt", fill = "ttt",
+#           palette = c("#00AFBB", "#E7B800","gray"))
+
+# +
+#   ggtitle("
+# #KW test:Chi-squared = 17.7279
+# #p-value = 0.0001414
+# , wilcox_lfvsgrouper:W = 81.5, p-value = 0.6593")
 
 
 ############################################

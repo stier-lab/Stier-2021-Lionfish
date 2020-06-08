@@ -18,6 +18,8 @@ ggplot(g,aes(x=Length))+
 
 ggplot(data=g,aes(x=Length, y=Treatment,point_color=Treatment,color=Treatment,fill=Treatment)) +
   geom_density_ridges(
+    quantile_lines=TRUE,
+    quantile_fun=function(x,...)mean(x),
     jittered_points = TRUE, scale = .95, rel_min_height = .01,
     point_shape = "|", point_size = 3, size = 0.25,
     position = position_points_jitter(height = 0),
