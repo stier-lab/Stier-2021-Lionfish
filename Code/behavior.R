@@ -4,12 +4,22 @@ library(reshape2)
 library(gdata)
 library(lme4)
 library(nlme)
+library(multcomp)
 
 #average number of gobies visible by treatment 
 #average prop time spent in same quad as predator 
 #average prop time predators spent in same quad as refuge
 
 x=read.csv("data/behavior.csv")
+
+x <- 
+  x %>%
+  filter(!is.na(cam_name)) %>%
+  filter(cam_name != "TS4 by Jo") %>%
+  filter(cam_name != "TS5")
+
+#add secondary label
+x$ttt_2<-recode(x$ttt, Scarus = "Control")
 
 ############################################
 #####Is a similar proportion fo the tank visible? 
@@ -101,13 +111,71 @@ ggplot(x, aes(x= factor(ttt), y=num_vis)) +
 ggsave("figures/behavior/visibile_ignoringtankpseudo.pdf")
 
 
-ggplot(x, aes(x= ttt, y=num_vis))+
-  geom_jitter(aes(color=cam_name))+
+
+
+#tabulate reps by ttt
+
+tab_n<-
+  x%>%
+  group_by(ttt,cam_name)%>%
+  summarize(n=n(),mean(num_vis))
+
+tab_n %>% gt()
+
+#mean by camera 
+xbar_by_cam<-x%>%
+  group_by(ttt,cam_name)%>%
+  summarize(n=n(),"mean"=mean(num_vis))
+
+
+
+ggplot(xbar_by_cam, aes(x= ttt, y=,mean)) +
+  geom_jitter(width=0.1,height=0,aes(color=ttt,pch=ttt))+
+  stat_summary(colour="black",fun = mean, geom = "point", size=3)+
+  stat_summary(fun.data = mean_cl_normal, geom = "linerange")+
+  theme_classic()+
+  theme(axis.text=element_text(size=12),
+        axis.title=element_text(size=14,face="bold"))+
+  xlab("Treatment")+
+  ylab("# hiding")
+  # scale_color_manual(values = c("#00AFBB", "#E7B800","gray","black"),labels = c("Control", "Grouper","Lionfish","Scarus"))
+
+
+
+##acs note to self - can't get contrasts to work here 
+
+m3 <- lme(num_vis~ttt,random=~1|cam_name,data=x)
+contrasts(x$ttt)=cbind(c(-1,1,1,-1),c(0,-1,1,0),c(-1,0,0,1))
+summary(m3)
+
+summary(glht(m3, linfct=mcp(ttt="Tukey")))
+
+
+contrasts(xbar_by_cam$ttt)=cbind(c(-1,1,1,-1),c(0,-1,1,0),c(-1,0,0,1))
+m5 <- glm(round(mean)~ttt,data=xbar_by_cam,family="quasipoisson")
+summary(m5)
+
+m6 <- aov(mean~ttt,data=xbar_by_cam)
+TukeyHSD(m6)
+pairwise.t.test(xbar_by_cam$mean,xbar_by_cam$ttt,method="hochberg")
+
+m7 <-glht(m6, linfct = mcp(tension = "Tukey"))
+summary(m7)
+
+
+
+ggplot(x, aes(x= ttt, y=num_vis,group=cam_name))+
+  geom_jitter(aes(color=cam_name),alpha=0.5)+
+  stat_summary(colour="black",fun = mean, geom = "point", size=3)+
+  stat_summary(fun.data = mean_cl_normal, geom = "linerange")+
   theme_classic()+
   xlab("Treatment")+
   ylab("Number Visible")+
   ggtitle("Hiding by camera")+
   scale_colour_viridis(discrete = TRUE) 
+
+
+
 
 ggsave("figures/behavior/visibile_bycamera.pdf")
 # 
