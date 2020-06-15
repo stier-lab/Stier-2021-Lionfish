@@ -33,7 +33,7 @@ ggplot(x, aes(x= factor(ttt), y=mort)) +
 ggsave("figures/survival/Survivalplot_v1.pdf")
 
 
-ggplot(x, aes(x= factor(ttt), y=mort)) +
+ggplot(x, aes(x= factor(ttt_2), y=mort)) +
   geom_jitter(width=0.1,height=0,aes(color=ttt,pch=ttt))+
   stat_summary(colour="black",fun = mean, geom = "point", size=3)+
   stat_summary(fun.data = mean_cl_normal, geom = "linerange")+

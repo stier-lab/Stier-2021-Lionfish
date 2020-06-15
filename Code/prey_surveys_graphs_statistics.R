@@ -116,11 +116,21 @@ ggplot(dat.comparison, aes(x = `Mean Temperature [F]`, y = Month, fill = stat(x)
 m1 <- lme(log(density+1) ~ species, random = ~1|site, data=dat.comparison)
 summary(m1)
 
-m2<-glmer(log(density+1) ~ species, random = ~1|site,data=dat.comparison)
-summary(m2)
 
 m3 <-lmer(log(density+1) ~species+(1|site),data=dat.comparison)
+summary(m3)
 
+# if you need to get p-vals - check out this resource: https://www.r-bloggers.com/three-ways-to-get-parameter-specific-p-values-from-lmer/
+# extract coefficients
+coefs.m3.control <- data.frame(coef(summary(m3)))
+
+#use normal distribution to approximate p-value
+coefs.m3.control$p.z <- 2 * (1 - pnorm(abs(coefs.m3.control$t.value)))
+coefs.m3.control
+
+#tried a gmma but gamma distribution assumes greater than zero 
+m4 <-glmer(density+0.001 ~species+(1|site),family=Gamma,data=dat.comparison)
+summary(m4)
 
 
 # Linear mixed-effects model fit by REML
