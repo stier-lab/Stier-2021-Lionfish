@@ -33,7 +33,7 @@ ggplot(x, aes(x= factor(ttt), y=mort)) +
 ggsave("figures/survival/Survivalplot_v1.pdf")
 
 
-ggplot(x, aes(x= factor(ttt_2), y=mort)) +
+ggplot(x, aes(x= factor(ttt), y=mort)) +
   geom_jitter(width=0.1,height=0,aes(color=ttt,pch=ttt))+
   stat_summary(colour="black",fun = mean, geom = "point", size=3)+
   stat_summary(fun.data = mean_cl_normal, geom = "linerange")+
@@ -45,6 +45,21 @@ ggplot(x, aes(x= factor(ttt_2), y=mort)) +
   scale_color_manual(values = c("#00AFBB", "#E7B800","gray"),labels = c("Control", "Grouper","Lionfish"))
 
 ggsave("figures/survival/Survivalplot_v2.png")
+
+
+ggplot(x, aes(x= factor(ttt_2), y=mort)) +
+  geom_jitter(width=0.1,height=0,aes(color=ttt,pch=ttt))+
+  stat_summary(colour="black",fun = mean, geom = "point", size=3)+
+  stat_summary(fun.data = mean_cl_normal, geom = "linerange")+
+  theme_classic()+
+  theme(axis.text=element_text(size=12),
+        axis.title=element_text(size=14,face="bold"))+
+  xlab("Treatment")+
+  ylab("Proportion Mortality")+
+  scale_color_manual(values = c("#00AFBB", "#E7B800","gray"),labels = c("Control", "Grouper","Lionfish"))
+
+ggsave("figures/survival/Survivalplot_scarus_v1.png",width=4,height=4)
+
 
 # 
 # ggdensity(x, x = "mort",
