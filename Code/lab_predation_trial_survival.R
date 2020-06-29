@@ -38,13 +38,13 @@ ggplot(x, aes(x= factor(ttt), y=mort)) +
   stat_summary(colour="black",fun = mean, geom = "point", size=3)+
   stat_summary(fun.data = mean_cl_normal, geom = "linerange")+
   theme_classic()+
-  theme(axis.text=element_text(size=12),
-        axis.title=element_text(size=14,face="bold"))+
-  xlab("Treatment")+
-  ylab("Proportion Mortality")+
-  scale_color_manual(values = c("#00AFBB", "#E7B800","gray"),labels = c("Control", "Grouper","Lionfish"))
+  # theme(axis.text=element_text(size=12),
+        # axis.title=element_text(size=14,face="bold"))+
+  xlab("Predator treatment")+
+  ylab("Proportion goby mortality")+
+  scale_color_manual(values = c("#ABA950", "#6190AB","#AD262B"),labels = c("Control", "Grouper","Lionfish"))
 
-ggsave("figures/survival/Survivalplot_v2.png")
+ggsave("figures/survival/Survivalplot_v2.pdf")
 
 
 ggplot(x, aes(x= factor(ttt_2), y=mort)) +
@@ -58,7 +58,7 @@ ggplot(x, aes(x= factor(ttt_2), y=mort)) +
   ylab("Proportion Mortality")+
   scale_color_manual(values = c("#00AFBB", "#E7B800","gray"),labels = c("Control", "Grouper","Lionfish"))
 
-ggsave("figures/survival/Survivalplot_scarus_v1.png",width=4,height=4)
+ggsave("figures/survival/Survivalplot_scarus_v1.png")
 
 
 # 

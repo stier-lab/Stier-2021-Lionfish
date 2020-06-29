@@ -6,6 +6,7 @@ library(tidyverse)
 library(nlme)
 library(gt)
 library(lme4)
+library(waffle)
 
 # plot coral head focused predator survey data
 countdat <- read.csv("data/2015 field survey fish counts.csv", header=TRUE)
@@ -133,9 +134,11 @@ ggplot(df4,aes(x=type,y=fraction))+
   facet_wrap(~site)+
   xlab("Predator Group")+
   ylab("Proportion of reefs occupied")+
-  scale_fill_manual(values=c("gray","#8FBC8F"))
+  scale_fill_manual(values=c("gray","#8FBC8F"))+
+  theme(axis.text=element_text(size=12),
+        axis.title=element_text(size=14,face="bold"))
 
-ggsave("figures/pred_survey/pred_survey_incidence_ native vs invasive predators.png")
+ggsave("figures/pred_survey/pred_survey_incidence_ native vs invasive predators.pdf")
 
 ### by site
 ggplot(dat.predator.comparison, aes(x=species,y=log(density+1))) + 
@@ -215,6 +218,17 @@ predtab<-
   summarize(n=n(),sum(incidence))
 
 predtab %>% gt()
+
+# waffle(dat.predator.comparison)
+# 
+# count <- mtcars %>%
+#   group_by(cyl) %>%
+#   summarise(n = n()) %>% 
+#   mutate(percent = round(n/sum(n)*100))
+# case_counts <- count$percent
+# names(case_counts) <- count$cyl
+# waffle(case_counts)
+
 
 m2 <- lme(data=dat.predator.comparison,log(density+1) ~ native.invasive, random= ~1|site)
 summary(m2)

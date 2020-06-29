@@ -5,6 +5,7 @@ library(gdata)
 library(lme4)
 library(nlme)
 library(multcomp)
+library(viridis)
 
 #average number of gobies visible by treatment 
 #average prop time spent in same quad as predator 
@@ -20,6 +21,37 @@ x <-
 
 #add secondary label
 x$ttt_2<-recode(x$ttt, Scarus = "Control")
+
+############################################
+#####Summarize obs per campera and sample same amount (8 obs per camera)
+############################################
+
+behav_tab<-
+  x%>%
+  group_by(ttt,cam_name)%>%
+  summarize(n=n(),mean(num_vis))
+
+behav_tab %>% gt()
+
+btab_group<-x%>%group_by(cam_name)%>%
+  filter(cam_name!="Jasmine") 
+
+#min obs = 8 across cameras
+ssamp<-sample_n(btab_group,8)
+
+ggplot(ssamp, aes(x= ttt, y=num_vis,group=cam_name))+
+  geom_jitter(aes(color=cam_name),alpha=0.5)+
+  stat_summary(colour="black",fun = mean, geom = "point", size=3)+
+  stat_summary(fun.data = mean_cl_normal, geom = "linerange")+
+  theme_classic()+
+  xlab("Treatment")+
+  ylab("Number Visible")+
+  ggtitle("Hiding by camera")+
+  scale_colour_viridis(discrete = TRUE) 
+
+
+ggsave("figures/behavior/hiding_subsamp.png")
+
 
 ############################################
 #####Is a similar proportion fo the tank visible? 
@@ -111,21 +143,6 @@ ggplot(x, aes(x= factor(ttt), y=num_vis)) +
 ggsave("figures/behavior/visibile_ignoringtankpseudo.pdf")
 
 
-
-
-#tabulate reps by ttt
-
-tab_n<-
-  x%>%
-  group_by(ttt,cam_name)%>%
-  summarize(n=n(),mean(num_vis))
-
-tab_n %>% gt()
-
-#mean by camera 
-xbar_by_cam<-x%>%
-  group_by(ttt,cam_name)%>%
-  summarize(n=n(),"mean"=mean(num_vis))
 
 
 

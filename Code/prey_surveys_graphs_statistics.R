@@ -94,7 +94,7 @@ dat.comparison2 <- dat.comparison %>%
     scale_x_log10(breaks = trans_breaks("log10", function(x) 10^x),
                 labels = trans_format("log10", math_format(10^.x)))   
   
-  ggsave("figures/prey_survey/ridgeline_COPE_otherprey.png")
+  ggsave("figures/prey_survey/ridgeline_COPE_otherprey.pdf")
   
   
   
