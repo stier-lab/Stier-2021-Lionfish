@@ -7,6 +7,7 @@ library(nlme)
 library(gt)
 library(lme4)
 library(waffle)
+library(Hmisc)
 
 # plot coral head focused predator survey data
 countdat <- read.csv("data/2015 field survey fish counts.csv", header=TRUE)
@@ -21,72 +22,34 @@ dat.predator.comparison <- gather(pred_densities, key, value, -site)
 names(dat.predator.comparison) <- c("site","species","density") 
 
 
-#######
-## Plot Speies by 95% CI
-#######
-
-ggplot(dat.predator.comparison,aes(x=species,y=density))+
-geom_jitter(aes(pch=site))+
-  xlab("Predator Species")+
-  ylab("Predator Density (fish per m2)")+
-  theme_classic()+
-  theme(axis.text.x=element_text(face="italic")) +
-  theme(axis.text.x = element_text(angle = 45,hjust=1))
-
-ggsave("figures/pred_survey/pred_survey_dotplot_roving native vs invasive predators.png")
+# ================================================================#
+# Summary stats for coral head surveys
+# ================================================================#
 
 
-ggplot(dat.predator.comparison,aes(x=species,y=density))+
-  stat_summary(fun.data= mean_cl_normal,lty=2)+
-  xlab("Predator Species")+
-  ylab("Predator Density (fish per m2)")+
-  theme_classic()+
-  theme(axis.text.x=element_text(face="italic"))+
-  theme(axis.text.x = element_text(angle = 45,hjust=1))
+#predators are always 1 per reef in this dataset
+range(countdat[,c(13:16)])
 
-ggsave("figures/pred_survey/pred_survey_mean_CI_roving native vs invasive predators.png")
+#when you estimate the incidence at three sites we saw 10 groupers, two hamlets, and 4 lionfish across 24 reefs. 
+#the four lionfish were 2 at casa blanca, 1 at casa verde and 1 at punta caracol. See next code for other species
 
+dat.predator.comparison%>%
+  group_by(species,site)%>%
+  summarise_all(~sum(. != 0))
+  summarise(N = n())
+  
+#of those densities they ranged from   0.29 predator per cm2 to 1.39 fish per cm2
+  dat.predator.comparison%>%
+    filter(density>0)%>%
+    group_by(species,site)%>%
+    summarise_all(mean)
+  
 
-#######
-## Plot Speies by 95% CI without zeros 
-#######
+  
+# ================================================================#
+# Incidence Analysis
+# ================================================================#
 
-pred_dat <-dat.predator.comparison %>%
-  filter(density>0)
-
-
-ggplot(pred_dat, aes(x = species,y=density))+
-  geom_dotplot(binaxis = "y", stackdir = "center",position="dodge",fill="white") + 
-  stat_summary(fun.data="mean_sdl",  fun.args = list(mult=1), 
-               geom="pointrange", color = "black")+
-  xlab("Predator Species")+
-  ylab("Predator Density (fish per m2)")+
-  theme_classic()+
-  theme(axis.text.x=element_text(face="italic"))+
-  theme(axis.text.x = element_text(angle = 45,hjust=1)) 
-
-ggsave("figures/pred_survey/pred_survey_mean_CI_nozero_all_sites_roving native vs invasive predators.png")
-
-
-
-
-ggplot(pred_dat, aes(x = species,y=density,pch=site))+
-geom_dotplot(binaxis = "y", stackdir = "center",position="dodge",fill="white") + 
-  stat_summary(fun.data="mean_sdl",  fun.args = list(mult=1), 
-               geom="pointrange", color = "black")+
-  xlab("Predator Species")+
-  ylab("Predator Density (fish per m2)")+
-  theme_classic()+
-  theme(axis.text.x=element_text(face="italic"))+
-  theme(axis.text.x = element_text(angle = 45,hjust=1)) 
-
-ggsave("figures/pred_survey/pred_survey_mean_CI_nozero_roving native vs invasive predators.png")
-
-
-	
-#######
-## Statistical analyis of predator incidence
-#######
 
 names(countdat)
 
@@ -99,9 +62,11 @@ names(df1)<-c("site","coralsize","lionfish","native")
 #df2<-melt(df1,id.vars=c("site","coralsize")) melt deprecated 
 df2 <-  gather(df1, key, value, -site, - coralsize)
 
+#ignoring site binomial analysis 
 m1<-glm(value~key,family="binomial",data=df2)
 summary(m1)
 
+#including site as a random effect logistic regresssion 
 m2<-glmer(value~key+(1|site),family="binomial",data=df2)
 summary(m2)
 
@@ -140,6 +105,79 @@ ggplot(df4,aes(x=type,y=fraction))+
 
 ggsave("figures/pred_survey/pred_survey_incidence_ native vs invasive predators.pdf")
 
+
+#================================================================#
+#Density Analysis
+#================================================================#
+
+
+#######
+## Plot Species by 95% CI
+#######
+
+
+ggplot(dat.predator.comparison,aes(x=species,y=density))+
+  geom_jitter(aes(pch=site))+
+  xlab("Predator Species")+
+  ylab("Predator Density (fish per m2)")+
+  stat_summary(fun.data="mean_se",  fun.args = list(mult=1), 
+               geom="pointrange", color = "black",shape=23,fill="gray")+
+  theme_classic()+
+  theme(axis.text.x=element_text(face="italic")) +
+  theme(axis.text.x = element_text(angle = 45,hjust=1))
+
+ggsave("figures/pred_survey/pred_survey_dotplot_roving native vs invasive predators.png")
+
+
+ggplot(dat.predator.comparison,aes(x=species,y=density))+
+  stat_summary(fun.data= mean_se,lty=2)+
+  xlab("Predator Species")+
+  ylab("Predator Density (fish per m2)")+
+  theme_classic()+
+  theme(axis.text.x=element_text(face="italic"))+
+  theme(axis.text.x = element_text(angle = 45,hjust=1))
+
+ggsave("figures/pred_survey/pred_survey_mean_CI_roving native vs invasive predators.png")
+
+
+#no 0's 
+
+pred_dat <-dat.predator.comparison %>%
+  filter(density>0 & 
+           species %in% c("c.cruentatus","p.volitans"))
+
+anova(lm(density~species,data=pred_dat))
+
+
+ggplot(pred_dat, aes(x = species,y=density))+
+  geom_dotplot(binaxis = "y", stackdir = "center",position="dodge",fill="white") + 
+  stat_summary(fun.data="mean_sdl",  fun.args = list(mult=1), 
+               geom="pointrange", color = "black")+
+  xlab("Predator Species")+
+  ylab("Predator Density (fish per m2)")+
+  theme_classic()+
+  theme(axis.text.x=element_text(face="italic"))+
+  theme(axis.text.x = element_text(angle = 45,hjust=1)) 
+
+ggsave("figures/pred_survey/pred_survey_mean_CI_nozero_all_sites_roving native vs invasive predators.png")
+
+
+ggplot(pred_dat, aes(x = species,y=density,pch=site))+
+  geom_dotplot(binaxis = "y", stackdir = "center",position="dodge",fill="white") + 
+  stat_summary(fun.data="mean_sdl",  fun.args = list(mult=1), 
+               geom="pointrange", color = "black")+
+  xlab("Predator Species")+
+  ylab("Predator Density (fish per m2)")+
+  theme_classic()+
+  theme(axis.text.x=element_text(face="italic"))+
+  theme(axis.text.x = element_text(angle = 45,hjust=1)) 
+
+ggsave("figures/pred_survey/pred_survey_mean_CI_nozero_roving native vs invasive predators.png")
+
+
+
+#including zeros by site
+
 ### by site
 ggplot(dat.predator.comparison, aes(x=species,y=log(density+1))) + 
   geom_boxplot() +
@@ -151,8 +189,6 @@ ggplot(dat.predator.comparison, aes(x=species,y=log(density+1))) +
   theme(axis.text.x = element_text(angle = 45,hjust=1))
         
 ggsave("figures/pred_survey_by_site_roving native vs invasive predators.png")
-
-
 
 ggplot(dat.predator.comparison, aes(x=species,y=log(density+1))) + 
   geom_jitter() +
@@ -172,6 +208,21 @@ ggplot(dat.predator.comparison, aes(x=species,y=log(density+1))) +
 m3 <- lme(data=dat.predator.comparison,log(density+1) ~ species, random= ~1|site)
 summary(m3)
 anova(m3,test="F")
+
+
+#Or view density when predators are present just do a t.test
+
+pred.dens<-
+  dat.predator.comparison%>%
+  filter(density>0)%>%
+  group_by(species,site)
+
+t.test(density~native.invasive,data=pred.dens)
+
+ggplot(data=pred.dens,aes(x=native.invasive,y=density))+
+  geom_boxplot()+
+  xlab("Predator type")+
+  ylab("Predator density ")
 
 # Linear mixed-effects model fit by REML
 # Data: dat.predator.comparison 
@@ -258,19 +309,60 @@ summary(m2)
 # Number of Observations: 96
 # Number of Groups: 3
 
-# plot timed predator survey data
+#================================================================#
+#Timed predator surveys -not included in initial submission
+#================================================================#
 
-setwd("/Users/jameal.samhouri/Dropbox/Lionfish Panama/Code")
-timed_pred_dat <- read.csv("2015 Timed predator surveys by observer.csv",header=TRUE)
+# “All three divers lined up next to each other, approximately 2 arms-length apart and swam parallel
+# to each other ~4 feet above the substrate. Instead of swimming in a straight line, we tried to 
+# maintain a constant depth, moving with the contours of the reef. We began at 25 feet and swam 
+# for 20 minutes, tallying the number of Hypoplectrus, Cephalopholis, and Lionfish seen. 
+# After 20 minutes, we swam up the slope of the reef to 15 feet, and did another 
+# 20 minute swim/count back toward the boats. 
+# Each diver had their own slate and performed their own counts of the area directly beneath them.” 
+
+
+timed_pred_dat <- read.csv("data/2015 Timed predator surveys by observer.csv",header=TRUE)
 names(timed_pred_dat)
 View(timed_pred_dat)
 
-ggplot(timed_pred_dat, aes(x=Fish,y=log(Total+1))) + 
-  geom_jitter() +
+meanfishdf<-
+timed_pred_dat%>%
+  group_by(Fish,Reef)%>%
+  summarise(meanfish=mean(Total))
+
+ggplot(meanfishdf,aes(x = Fish,y=meanfish,group=Fish,pch=Reef))+
+  geom_dotplot(aes(),binaxis = "y", stackdir = "center",
+               position="dodge",fill="white") + 
+  stat_summary(fun.data="mean_se",  fun.args = list(mult=1), 
+               geom="pointrange", color = "black")+
+  xlab("Predator species")+
+  ylab("Number of fish")+
+  theme_classic()+
+  theme(axis.text.x=element_text(face="italic"))+
+  theme(axis.text.x = element_text(angle = 45,hjust=1)) 
+
+ggsave("figures/pred_survey/roving_pred_family.png",width=4,height=4)
+
+
+summary(aov(meanfish~Fish,data=meanfishdf))
+
+
+#sum by site across observers
+timed_pred_dat%>%
+  group_by(Fish,Reef)%>%
+  summarise(sumfish=sum(Total))%>%
+  ggplot(aes(x=Fish,y=sumfish,pch=Reef))+
+  geom_point()+
+  theme_classic()
+  
+
+ggplot(timed_pred_dat, aes(x=Fish,y=Total,pch=Reef)) + 
+  geom_point() +
   facet_wrap(~Reef) +
   #stat_summary(fun.y="median",geom="point") +
   xlab("") +
-  ylab("Number\nlog (x+1)") +
+  ylab("Number of Predators") +
   theme_bw() +
   theme(
     text=element_text(size=14),
