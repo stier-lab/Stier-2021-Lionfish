@@ -8,6 +8,7 @@ library(gt)
 library(lme4)
 library(waffle)
 library(Hmisc)
+library(fishualize)
 
 # plot coral head focused predator survey data
 countdat <- read.csv("data/2015 field survey fish counts.csv", header=TRUE)
@@ -103,46 +104,46 @@ ggplot(df4,aes(x=type,y=fraction))+
   theme(axis.text=element_text(size=12),
         axis.title=element_text(size=14,face="bold"))
 
+
 ggsave("figures/pred_survey/pred_survey_incidence_ native vs invasive predators.pdf")
 
 #alt figure
+# http://www.rebeccabarter.com/blog/2018-05-29_getting_fancy_ggplot2/
   
 gg_dot <-  ggplot(data=df4) +
   # remove axes and superfluous grids
   theme_classic() +
-  theme(axis.title = element_blank(),
+  theme(
         axis.ticks.y = element_blank(),
-        axis.line = element_blank()) + 
-  
+        axis.line = element_blank()) +
+
   # add a dummy point for scaling purposes
-  geom_point(aes(x = 0, y = site), 
-             size = 0, col = "white") + 
-  
+  geom_point(aes(x = 0, y = site),
+             size = 0, col = "white") +
+
   # add the horizontal discipline lines
   geom_hline(yintercept = 1:9, col = "grey80") +
-  
+
   # add a point for each male success rate
-  geom_point(aes(x = fraction, y = site,color=type,pch=type), 
-             size = 11,alpha=0.5) +
+  geom_point(aes(x = fraction, y = site,color=type,pch=type),
+             size = 11,alpha=0.75) +
   # add the text (%) for each male success rate
-  geom_text(aes(x = fraction, y = site, 
+  geom_text(aes(x = fraction, y = site,
                 label = paste0(round(fraction, 1))),
             col = "black") +
-  # add the text (%) for each female success rate
-  # geom_text(aes(x = fraction, y = site, 
-  #               label = paste0(round(success_rates_women, 1))),
-  #           col = "white") +
-  # add a label above the first two points
-  # geom_text(aes(x = x, y = y, label = label, col = label),
-  #           data.frame(x = c(25.6 - 1.1, 26.5 + 0.6), y = 10, 
-  #                      label = c("women", "men")), size = 6) +
-  # scale_color_manual(values = c("#9DBEBB", "#468189"), guide = "none") +
-  
   # manually specify the x-axis
-  scale_x_continuous(breaks = c(0,0.25,0.5,0.75,1), 
+  scale_x_continuous(breaks = c(0,0.25,0.5,0.75,1),
                      labels = c("0%", "25%", "50%","75%","100%")) +
   # manually set the spacing above and below the plot
-  scale_y_discrete(expand = c(0.2, 0)) 
+  scale_y_discrete(expand = c(0.2, 0))+
+  xlab("Percent Reefs Occupied")
+  # add_fishape(family = "Scorpaenidae",
+  #             option = "Pterois_volitans",
+  #             xmin = 0.3, xmax = 0.7, ymin = 0.1, ymax = 0.15,
+  #             scaled = TRUE,
+  #             xlim = c(0.5, 1), ylim = c(0, 0.1) ,
+  #             fill = fish(option = "Pterois_volitans", n = 5)[3],
+  #             alpha = 1)
 gg_dot
 #================================================================#
 #Density Analysis
