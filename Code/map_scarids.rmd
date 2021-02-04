@@ -1,0 +1,126 @@
+---
+title: "Map"
+author: "Molly Wilson"
+date: "6/4/2019"
+output: html_document
+---
+
+```{r}
+library(tidyverse)
+library(here)
+library(sf)
+library(ggmap)
+library(ggspatial)
+library(rnaturalearth)
+library(rnaturalearthdata)
+library(ggrepel)
+
+# site coordinates
+site_data <- read.csv(here("data","map","site_coord.csv"))
+
+# shapefiles for islands filtered from BES and ATG boundaries
+bonaire <- st_read(here("data","map","BES_adm1.shp")) %>% 
+  filter(NAME_1 == "Bonaire") %>%
+  st_union() %>%
+  st_sf() %>%
+  mutate(island = "Bonaire")
+
+atg <- st_read(here("data","map","ATG_adm1_gadm.shp")) 
+antigua <- atg %>%
+  filter(!NAME_1 == c("Barbuda","Redonda")) %>%
+  st_union() %>%
+  st_sf() %>%
+  mutate(island = "Antigua")
+barbuda <- atg %>% 
+  filter(NAME_1 == "Barbuda") %>%
+  st_union() %>%
+  st_sf() %>%
+  mutate(island = "Barbuda")
+
+islands <- rbind(antigua, barbuda, bonaire) %>%
+  mutate(lon=map_dbl(geometry, ~st_centroid(.x)[[1]]), 
+         lat=map_dbl(geometry, ~st_centroid(.x)[[2]]))
+
+# google API
+register_google(key = "AIzaSyDvckfjy2riROUUuL9oDg7HBXRBd39X82A")
+```
+
+### Regional map 
+
+```{r}
+world <- ne_countries(scale = "large", returnclass = "sf")
+ggplot() +
+  geom_sf(data = world, fill = "gray80", col = "gray80", size = .25) +
+  geom_sf(data = islands, fill = "gray20", col = "gray20", size = .25) +
+  #geom_text_repel(data = islands %>% filter(island %in% c("Antigua","Barbuda")), aes(x = lon, y = lat, label = island), nudge_x = 6, segment.size = .2) +
+  #geom_text_repel(data = islands %>% filter(island == "Bonaire"), aes(x = lon, y = lat, label = island), nudge_x = -2, nudge_y = 2, segment.size = .2) +
+  #annotate(geom = "text", x = -86.5, y = 26, label = "Gulf of Mexico", fontface = "italic", color = "grey80", size = 3) +
+  annotate(geom = "text", x = -65, y = 29, label = "Atlantic Ocean", fontface = "italic", color = "grey80", size = 4) +
+  annotate(geom = "text", x = -72.5, y = 15, label = "Caribbean Sea", fontface = "italic", color = "grey80", size = 4) +
+  coord_sf(xlim = c(-86, -58), ylim = c(10, 33), expand = FALSE) +
+  labs(x = "", y = "") +
+  theme_bw()
+ggsave(here("figs/map_region.png"))
+```
+
+### Island-level insets
+
+```{r}
+sites_anu <- site_data %>% filter(island == "Antigua")
+ggplot() +
+  geom_sf(data = antigua, fill = "slategray4", color = "slategray4") +
+  geom_point(data = sites_anu, aes(x = lon, y = lat), color = "gray20", size = 2) +
+  geom_text_repel(data = sites_anu,
+                  aes(x = lon, y = lat, label = site),
+                  segment.size = .2,
+                  direction = "y",
+                  box.padding = .75,
+                  nudge_x = .18, nudge_y = .08,
+                  size = 5) +
+  coord_sf(xlim = c(-61.92, -61.52), ylim = c(16.98, 17.18)) +
+  annotation_scale(location = "bl", width_hint = 0.25) +
+  theme_bw() +
+  theme(axis.text = element_blank(), axis.ticks = element_blank(), axis.title = element_blank(), panel.grid.major = element_line(color = "transparent"))
+
+ggsave(here("figs/map_anu.png"))
+```
+
+```{r}
+sites_brb <- site_data %>% filter(island == "Barbuda")
+ggplot() +
+  geom_sf(data = barbuda, fill = "slategray4", color = "slategray4") +
+  geom_point(data = sites_brb, aes(x = lon, y = lat), color = "gray20", size = 2) +
+  geom_text_repel(data = sites_brb,
+                  aes(x = lon, y = lat, label = site),
+                  segment.size = .2,
+                  direction = "y",
+                  box.padding = .75,
+                  nudge_x = .18, nudge_y = .12,
+                  size = 5) +
+  coord_sf(xlim = c(-61.9, -61.44), ylim = c(17.51, 17.74)) +
+  annotation_scale(location = "bl", width_hint = 0.25) +
+  theme_bw() +
+  theme(axis.text = element_blank(), axis.ticks = element_blank(), axis.title = element_blank(), panel.grid.major = element_line(color = "transparent"))
+
+ggsave(here("figs/map_brb.png"))
+```
+
+```{r}
+sites_bon <- site_data %>% filter(island == "Bonaire")
+ggplot() +
+  geom_sf(data = bonaire, fill = "slategray4", color = "slategray4") +
+  geom_point(data = sites_bon, aes(x = lon, y = lat), color = "gray20", size = 2) +
+  geom_text_repel(data = sites_bon,
+                  aes(x = lon, y = lat, label = site),
+                  segment.size = .2,
+                  direction = "y",
+                  box.padding = .75,
+                  nudge_x = .22, nudge_y = .02,
+                  size = 5) +
+  coord_sf(xlim = c(-68.45, -67.85), ylim = c(12.02, 12.32)) +
+  annotation_scale(location = "bl", width_hint = 0.25) +
+  theme_bw() +
+  theme(axis.text = element_blank(), axis.ticks = element_blank(), axis.title = element_blank(), panel.grid.major = element_line(color = "transparent"))
+
+ggsave(here("figs/map_bon.png"))
+```
