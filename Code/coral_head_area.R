@@ -28,4 +28,5 @@ ggplot(countdat,aes(x=site,y=head.area.m2)) +
         legend.position="none")
 
 ggsave("figures/prey_survey/coral_head_area_bp.pdf")
+ggsave("figures/prey_survey/coral_head_area_bp.png")
 
