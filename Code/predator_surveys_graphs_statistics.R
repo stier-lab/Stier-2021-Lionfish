@@ -154,6 +154,8 @@ gg_dot
 ## Plot Species by 95% CI
 #######
 
+dat.predator.comparison$species<-capitalize(dat.predator.comparison$species)
+
 
 ggplot(dat.predator.comparison,aes(x=species,y=density))+
   geom_jitter(aes(pch=site))+
@@ -165,7 +167,25 @@ ggplot(dat.predator.comparison,aes(x=species,y=density))+
   theme(axis.text.x=element_text(face="italic")) +
   theme(axis.text.x = element_text(angle = 45,hjust=1))
 
-ggsave("figures/pred_survey/pred_survey_dotplot_roving native vs invasive predators.png")
+ggsave("figures/pred_survey/pred_survey_dotplot_patch_reef_incl0s.png")
+
+dat.predno0<-
+dat.predator.comparison %>%
+  filter(density>0)
+
+ggplot(dat.predno0,aes(x=species,y=density))+
+  # geom_jitter(aes(pch=site),alpha=0.5)+
+  geom_point(aes(pch=site),alpha=0.5,size=4)+
+  xlab("Predator Species")+
+  ylab("Predator Density (fish per square meter)")+
+  stat_summary(fun.data="mean_se",  fun.args = list(mult=1), 
+               geom="pointrange", color = "black",shape=23,fill="black",alpha=0.7)+
+  theme_classic()+
+  theme(axis.text.x=element_text(face="italic")) +
+  theme(axis.text.x = element_text(angle = 45,hjust=1))
+
+ggsave("figures/pred_survey/pred_survey_dotplot_patch_reef_no0s.png",width=5,height=4)
+
 
 
 ggplot(dat.predator.comparison,aes(x=species,y=density))+
@@ -176,7 +196,7 @@ ggplot(dat.predator.comparison,aes(x=species,y=density))+
   theme(axis.text.x=element_text(face="italic"))+
   theme(axis.text.x = element_text(angle = 45,hjust=1))
 
-ggsave("figures/pred_survey/pred_survey_mean_CI_roving native vs invasive predators.png")
+ggsave("figures/pred_survey/pred_survey_mean_CI_roving native vs invasive predators.png",)
 
 
 #no 0's 
@@ -349,7 +369,7 @@ summary(m2)
 # Number of Groups: 3
 
 #================================================================#
-#Timed predator surveys -not included in initial submission
+#Timed predator surveys -not included in initial submission but in revision
 #================================================================#
 
 # “All three divers lined up next to each other, approximately 2 arms-length apart and swam parallel
@@ -364,6 +384,11 @@ summary(m2)
 timed_pred_dat <- read.csv("data/2015 Timed predator surveys by observer.csv",header=TRUE)
 names(timed_pred_dat)
 View(timed_pred_dat)
+
+sumfishdf<-
+  timed_pred_dat%>%
+  group_by(Fish,Reef)%>%
+  summarise(sumfish=sum(Total))
 
 meanfishdf<-
 timed_pred_dat%>%
