@@ -145,6 +145,10 @@ gg_dot <-  ggplot(data=df4) +
   #             fill = fish(option = "Pterois_volitans", n = 5)[3],
   #             alpha = 1)
 gg_dot
+
+ggsave("figures/pred_survey/pred_survey_dotplot_patch_reef_incidence.pdf",
+       width=5,height=4)
+
 #================================================================#
 #Density Analysis
 #================================================================#
