@@ -1,0 +1,189 @@
+---
+title: "Map"
+author: "Molly Wilson"
+date: "8/26/2020"
+output: html_document
+---
+
+```{r}
+library(tidyverse)
+library(here)
+library(sf)
+library(ggmap)
+library(ggspatial)
+library(rnaturalearth)
+library(ggrepel)
+library(marmap) # for bathymetric data
+library(rgdal) # for bathymetric data
+library(scatterpie) # for pie charts
+library(ggnewscale) # for multiple color scales on map (with pie charts)
+library(egg) # for panel
+```
+
+Set up
+```{r}
+# port locations
+city_coord <- read.csv(here("raw_data", "map", "city_coord.csv"))
+
+# Guadeloupe shapefile
+glp <- st_read(here("raw_data", "map", "GLP_adm", "GLP_adm2.shp")) %>%
+  st_union() %>%
+  st_sf()
+
+# set lat/lon for Guadeloupe range
+lons = c(-62, -60.8)
+lats = c(15.7, 16.9)
+
+# gear use data for pie charts
+vessel_yr <- read.csv(here("processed_data", "vessel_yr.csv")) %>% select(-X)
+
+# colors for pie charts
+colors3 <- c("deepskyblue4", "cadetblue3", "azure3")
+colors3_blend <- c("mediumseagreen", "goldenrod1", "deepskyblue4")
+colors4 <- c("deepskyblue4", "cadetblue3", "mediumseagreen", "darkgoldenrod1")
+```
+
+Regional map
+```{r}
+world <- ne_countries(scale = "large", returnclass = "sf") # import global coastline data
+regional <- ggplot() +
+  geom_sf(data = world, fill = "snow3", col = "snow3", size = .25) +
+  geom_sf(data = glp, fill = "slategray4", col = "slategray4", size = .25) +
+  annotate(geom = "text", x = -70, y = 29, label = "Atlantic Ocean", fontface = "italic", color = "black", size = 3) +
+  annotate(geom = "text", x = -72.5, y = 15, label = "Caribbean Sea", fontface = "italic", color = "black", size = 3) +
+  coord_sf(xlim = c(-83, -58), ylim = c(10, 33), expand = FALSE) +
+  theme_bw() +
+  theme(axis.title = element_blank(), 
+        axis.ticks = element_blank(),
+        plot.margin = unit(c(.1, .1, .1, .1), "cm"))
+```
+
+Guadeloupe - plain
+```{r}
+guada <- ggplot() +
+  geom_sf(data = glp, fill = "slategray4", color = "slategray4") + # add guada coastline
+  geom_point(data = city_coord, aes(x = lon, y = lat), color = "gray20", size = 2) + # add ports
+  geom_text_repel(data = city_coord, # labels for ports
+                  aes(x = lon, y = lat, label = name),
+                  segment.size = .2,
+                  direction = "y",
+                  box.padding = .75,
+                  nudge_x = c(-0.25, -0.25, 0.15, 0.15, 0.05), 
+                  nudge_y = c(0, .1, 0.15, -0.15, -0.1),
+                  size = 4) +
+  coord_sf(xlim = lons, ylim = lats) + # setting map limits
+  annotation_scale(location = "bl", width_hint = 0.25) + # scale
+  annotation_north_arrow(location = "br", height = unit(1, "cm"), width = unit(0.5, "cm")) +
+  theme_bw() +
+  theme(panel.grid = element_blank(),
+        axis.title = element_blank(), 
+        axis.text = element_blank(),
+        axis.ticks = element_blank(),
+        plot.margin = unit(c(.1, .1, .1, 0), "cm"))
+```
+
+Guadeloupe - bathymetric
+```{r}
+
+bathy <- getNOAA.bathy(lon1 = lons[1], lon2 = lons[2], lat1 = lats[1], lat2 = lats[2], 
+                  resolution = 1,
+                  keep = T)
+bathy.f <- fortify.bathy(bathy) %>% 
+  mutate(z = as.numeric(z),
+         z = if_else(z > 0, 0, z)) # converting terrestrial (+) data to 0, bc files don't precisely align
+
+guada_bathy <- ggplot() +
+  geom_raster(data = bathy.f,
+                mapping = aes(x = x, y = y, fill = z),
+                interpolate = T) +
+  scale_fill_gradientn(colours = c("slategray3","white"), name = "Depth (m)") +
+  new_scale("fill") +
+  geom_contour(data = bathy.f, # add contour lines
+               aes(x=x, y=y, z=z),
+               breaks = seq(0, -5000, by = -200), # select depths
+               size=c(0.1),
+               colour="slategray4") +
+  geom_sf(data = glp, fill = "slategray4", color = "slategray4") + # add guada coastline
+  geom_point(data = city_coord, aes(x = lon, y = lat), color = "gray20", size = 2) + # add ports
+  geom_text_repel(data = city_coord, # labels for ports
+                  aes(x = lon, y = lat, label = name),
+                  segment.size = .2,
+                  direction = "y",
+                  box.padding = .75,
+                  nudge_x = c(-0.25, -0.25, 0.15, 0.15, 0.05), 
+                  nudge_y = c(0, .1, 0.15, -0.15, -0.1),
+                  size = 4) +
+  coord_sf(xlim = lons, ylim = lats, expand = FALSE) + # setting map limits
+  annotation_scale(location = "bl", width_hint = 0.25) + # scale +
+  theme_bw() +
+  theme(panel.grid = element_blank(),
+        axis.title = element_blank(), 
+        axis.text = element_blank(),
+        axis.ticks = element_blank(),
+        plot.margin = unit(c(.1, .1, .1, 0), "cm"))
+```
+
+Guadeloupe - bathymetric + pie charts
+```{r}
+# wrangle data for pie charts
+fleet_city <- vessel_yr %>% 
+  filter(year == 2018) %>%
+  select(vessel, city, in_off) %>%
+  mutate(in_off = case_when(in_off == "inshore only" ~ "Inshore only",
+                            in_off == "inshore + offshore" ~ "Inshore + offshore",
+                            in_off == "offshore only" ~ "Offshore only")) %>%
+  group_by(city) %>%
+  mutate(n_city = n()) %>%
+  ungroup() %>%
+  group_by(city, in_off, n_city) %>%
+  summarise(n_in_off = n(),
+            p_in_off = n_in_off/n_city) %>%
+  distinct() %>%
+  ungroup() %>%
+  left_join(city_coord, by = "city") %>%
+  select(-n_in_off) %>%
+  pivot_wider(names_from = in_off, values_from = p_in_off) %>%
+  mutate_all(replace_na, replace = 0) %>%
+  select(city, n_city, name, lat, lon, "Offshore only", "Inshore + offshore", "Inshore only") %>%
+  mutate(nudge_x = c(0, 0.15, 0.1, 0.15, -.25), 
+         nudge_y = c(0.15, -0.15, -0.15, 0.15, 0.15),
+         lat2 = lat + nudge_y,
+         lon2 = lon + nudge_x
+  )
+
+# plot
+ggplot() +
+  geom_raster(data = bathy.f,
+                mapping = aes(x = x, y = y, fill = z),
+                interpolate = T) +
+  scale_fill_gradientn(colours = c("slategray4","white"), name = "Depth (m)") +
+  new_scale("fill") +
+  geom_contour(data = bathy.f, # add contour lines
+               aes(x=x, y=y, z=z),
+               breaks = seq(0, -5000, by = -200), # select depths
+               size=c(0.1),
+               colour="slategray4") +
+  geom_sf(data = glp, fill = "slategray4", color = "slategray4") + # add guada coastline
+  geom_point(data = city_coord, aes(x = lon, y = lat), color = "gray20", size = 2) + # add ports
+  geom_scatterpie(data = fleet_city,
+                  aes(x = lon2, y = lat2, group = city, r = .1, fill = city), # log scaled by total number of fishers: r = log(n_city)*0.015
+                  cols = colnames(fleet_city[,c(6:8)]), color=NA, alpha = .95) +
+  scale_fill_manual(values = c("cadetblue3", "coral", "steelblue4"), 
+                    name = "Inshore vs. offshore gear use") +
+  coord_sf(xlim = lons, ylim = lats) + # setting map limits
+  annotation_scale(location = "bl", width_hint = 0.25) +
+  labs(x = "", y = "") +
+  theme_bw() +
+  theme(axis.title.x = element_blank(), 
+        axis.title.y = element_blank())
+
+ggsave(here("figs", "map_glp_pie.png"), height = 4.5)
+```
+
+Panel figure (regional + bathymetric)
+```{r}
+egg::ggarrange(regional, guada_bathy, nrow = 1)
+
+ggsave(here("figs", "map_panel.png"), plot = egg::ggarrange(regional, guada_bathy, nrow = 1))
+```
+
