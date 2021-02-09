@@ -1,6 +1,8 @@
 library(tidyverse)
 library(gdata)
 library(gt)
+library(lme4)
+library(multcomp)
 
 
 ############################################
@@ -77,7 +79,7 @@ ggsave("figures/survival/Survivalplot_scarus_v1.png")
 ############################################
 #####Analysis
 ############################################
-
+  
 #whacky distribution and heteroschedas
 ggplot(x,aes(x=eaten,group=ttt))+
   geom_bar(aes(fill=ttt))+
@@ -110,22 +112,70 @@ tab_n_vis <- tab_n %>% gt()
 
 
 #set up table of killed and initial 
-stab<-data.frame("eaten"=x$eaten,"survived"=x$t0_alive,"trial"=x$trial,"ttt"=x$ttt)
-ttt<-drop.levels(x$ttt)
-survtab<-cbind(x$eaten,x$t0_alive)
+stab<-data.frame("eaten"=x$eaten,"initial"=x$t0_alive,"trial"=x$trial,"ttt"=x$ttt)
+stab$prop<-stab$eaten/stab$initial
+stab$ttt<-as.factor(stab$ttt)
 
+m<-glm(prop~ttt,data=stab,family="quasibinomial")
+summary(m)
+#Tukey's test post hoc
+summary(glht(m, linfct=mcp(ttt="Tukey")))
+
+m<-lm(asin(sqrt(prop))~ttt,data=stab)
+summary(m)
+
+#initial contrasts
+contrasts(stab$ttt)
+#modified contrasts to contrast preds to control and grouper to lionfish
+contrasts(stab$ttt)  = cbind(c(-2,1,1),c(0,-1,1))
+
+#linear model
+m<-lm(asin(sqrt(prop))~ttt,data=stab)
+summary(m)
+
+m<-glm(prop~ttt,data=stab,family="quasibinomial")
+summary(m)
+
+
+
+ttt<-drop.levels(x$ttt)
+survtab<-data.frame(x$eaten,x$t0_alive,x$ttt)
+survtab$prop<-survtab$eaten/survtab$t0_alive
+
+
+
+alive<-c(rbinom(100,10,prob=0),rbinom(100,10,prob=0.5),rbinom(100,10,prob=0.8))
+t<-c(rep("A",100),rep("B",100),rep("C",100))
+df<-data.frame(alive,t)
+names(df)<-c("alive","t")
+df$prop<-df$alive/10   
+df$t<-as.factor(t)
+
+m<-glm(prop~t,data=df)
+summary(m)
+
+contrasts(df$t)<-cbind(c(-2,1,1),c(0,-1,1))
+m<-glm(prop~t,data=df)
+
+summary(m)
 
 
 #set orthogonal contrasts, treatment versus control and btw preds
-contrasts(stab$ttt)=cbind(c(-2,1,1),c(0,-1,1))
-contrasts(stab$ttt)
+# contrasts(stab$ttt)=cbind(c(-2,1,1),c(0,-1,1))
+contrasts(stab$ttt)  = cbind(c(-2,1,1),c(0,-1,1))
 
-contrasts(ttt) = cbind(c(-2,1,1),c(0,-1,1))
-
-m1<-glm(survtab~ttt,family=quasibinomial)
+m1<-glm(survtab~ttt,family=binomial)
 summary(m1)
 
-#trying to fit with trial as random effect
+ttt<-as.factor(ttt)
+contrasts(ttt) = cbind(c(-2,1,1),c(0,-1,1))
+
+m1<-glm(survtab~ttt,family=binomial)
+summary(m1)
+
+#trying to fit with trial as random effect 
+#relvant thread with bmb here https://stackoverflow.com/questions/31013260/post-hoc-test-for-glmer
+
 m2<-glmer(survtab~ttt+(1|trial),family="binomial",data=x)
 summary(m2)
 
