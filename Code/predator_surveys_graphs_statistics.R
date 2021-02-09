@@ -9,6 +9,7 @@ library(lme4)
 library(waffle)
 library(Hmisc)
 library(fishualize)
+library(cowplot)
 
 # plot coral head focused predator survey data
 countdat <- read.csv("data/2015 field survey fish counts.csv", header=TRUE)
@@ -54,8 +55,15 @@ dat.predator.comparison%>%
 
 names(countdat)
 
-
 psum<- countdat[,c(3,7,13:16)]
+
+psum2<-
+pivot_longer(psum,cols=c("p.volitans","h.puella","h.nigricans","c.cruentatus"))%>%
+group_by(name, site)
+
+aggregate(psum2$value,by=list(Category=psum2$site,psum2$name),FUN=sum)
+aggregate(psum2$value,by=list(Category=psum2$site,psum2$name),FUN=length)
+
 
 df1<-data.frame(psum[,c(1:2)], psum[,3],rowSums(psum[,4:6]))
 names(df1)<-c("site","coralsize","lionfish","native")
@@ -188,8 +196,7 @@ ggplot(dat.predno0,aes(x=species,y=density))+
   theme(axis.text.x=element_text(face="italic")) +
   theme(axis.text.x = element_text(angle = 45,hjust=1))
 
-ggsave("figures/pred_survey/pred_survey_dotplot_patch_reef_no0s.png",width=5,height=4)
-
+ggsave("figures/pred_survey/pred_survey_dotplot_patch_reef_no0s.pdf",width=2.5,height=3)
 
 
 ggplot(dat.predator.comparison,aes(x=species,y=density))+
@@ -399,8 +406,8 @@ timed_pred_dat%>%
   group_by(Fish,Reef)%>%
   summarise(meanfish=mean(Total))
 
-ggplot(meanfishdf,aes(x = Fish,y=meanfish,group=Fish,pch=Reef))+
-  geom_dotplot(aes(),binaxis = "y", stackdir = "center",
+ggplot(meanfishdf,aes(x = Fish,y=meanfish,group=Fish))+
+  geom_dotplot(aes(pch=Reef),binaxis = "y", stackdir = "center",
                position="dodge",fill="white") + 
   stat_summary(fun.data="mean_se",  fun.args = list(mult=1), 
                geom="pointrange", color = "black")+
@@ -410,7 +417,7 @@ ggplot(meanfishdf,aes(x = Fish,y=meanfish,group=Fish,pch=Reef))+
   theme(axis.text.x=element_text(face="italic"))+
   theme(axis.text.x = element_text(angle = 45,hjust=1)) 
 
-ggsave("figures/pred_survey/roving_pred_family.png",width=4,height=4)
+ggsave("figures/pred_survey/roving_pred_family.pdf",width=3,height=3)
 
 
 summary(aov(meanfish~Fish,data=meanfishdf))
