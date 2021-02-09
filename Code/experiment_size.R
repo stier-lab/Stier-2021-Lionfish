@@ -4,7 +4,7 @@ library(gdata)
 library(tidyverse)
 library(ggridges)
 
-#load data
+#load data and packages
 
 g=read.csv("data/experiment_size_selectivity.csv")
 g$Length<-g$Length*100
