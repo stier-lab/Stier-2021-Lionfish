@@ -54,6 +54,7 @@ ggsave("figures/size_selectivity/ridgeline_preysize_postpredation.pdf")
 ############################################
 #####Analysis
 ############################################
+g$Treatment<-as.factor(g$Treatment)
 contrasts(g$Treatment)=cbind(c(-2,1,1),c(0,-1,1))
 contrasts(g$Treatment)
 
@@ -75,59 +76,3 @@ kruskal.test(g2$Length~g2$Treatment)
 
 tapply(g2$Length,list(g2$Treatment),mean)
 
-
-
-
-###
-
-library(zipcode)
-library(tidyverse)
-library(maps)
-library(viridis)
-library(ggthemes)
-library(albersusa)#installed via github
-#data
-fm<-Export <- read_csv("~/Downloads/Export (1).csv")#the file we just downloaded
-data(zipcode)
-fm$zip<- clean.zipcodes(fm$zip)
-#size by zip
-fm.zip<-aggregate(data.frame(count=fm$FMID),list(zip=fm$zip,county=fm$County),length)
-fm<- merge(fm.zip, zipcode, by='zip')
-
-###
-
-library(maptools)
-library(RColorBrewer)
-library(ggmap)
-library(plyr)
-
-area <- readShapePoly("canada.shp")
-
-area.points <- fortify(area)
-
-
-loc="Toronto"
-
-mapImage <- get_map(location=loc,
-                    color="color",
-                    zoom=10,
-                    maptype="roadmap")
-
-extents <- geocode(loc, output="more")
-
-area.zoom <- subset(area.points, 
-                    extents$west  <= long & long <= extents$east &
-                      extents$south <= lat  & lat  <= extents$north)
-
-ggmap(mapImage) +
-  geom_polygon(aes(x = long,
-                   y = lat,
-                   group = group,
-                   fill = id),
-               data = area.zoom,
-               color = 'white',
-               #fill = 'black',
-               alpha = 0.4) +
-  coord_map(projection="mercator")+
-  labs(x = "Longitude",
-       y = "Latitude")
