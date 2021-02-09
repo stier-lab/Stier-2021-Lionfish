@@ -1,6 +1,7 @@
 library(tidyverse)
 library(Hmisc)
 library(janitor)
+library(ggrepel)
 
 #######
 ## Load and Organize Data
@@ -73,6 +74,58 @@ ggplot(reef_dat, aes(x=species,y=expert_den, colour = species))+
   )
 #ggsave("Lionfish vs graysby by region.pdf", width=12, height=7)
 ggsave("figures/reef_data/Lionfish vs graysby.png")
+
+######################################################
+######################################################
+######################################################
+
+######################################################
+############# PAIRS PLOT FIGURE #####################
+######################################################
+
+ggplot(
+  reef_dat %>%
+    mutate(
+      pretty_label = case_when(
+        species == "Lionfish" ~ region,
+        TRUE ~ ""
+      )
+      ) %>%
+    mutate(
+      label_font = case_when(
+        pretty_label == "Continental Caribbean And Brazil" ~ "bold",
+        TRUE ~ "plain"
+        )
+      )
+    ) +
+  geom_point(aes(x=species, y=expert_den, colour = region, fill = region)) +
+  geom_path(aes(x=species, y=expert_den, group=region, colour = region)) +
+  geom_text_repel(
+    aes(x=species, y=expert_den, label=pretty_label, colour = region, fontface=label_font),
+    alpha=0.8,
+    force = 0.75,
+    nudge_x = 1.5,
+    direction = "y",
+    hjust = 1,
+    segment.size = 0.1) +
+  stat_summary(aes(x=species, y=expert_den),
+               fun.data=mean_cl_normal,lty=2, position=position_dodge(width = 1),
+               alpha=0.2) +
+  ylab("Expert Density")+
+  xlab("Species") +
+  theme_bw() +
+  theme(
+    text=element_text(size=18),
+    panel.grid.major = element_blank(),
+    panel.grid.minor = element_blank(),
+    panel.background = element_rect(fill = NA,colour = "black",size=2),
+    strip.background =   element_rect(fill = "black", colour = "black"),
+    strip.text.x =       element_text(colour="white",size=8),
+    strip.text.y =       element_text(angle = -90,colour="white",size=12),
+    legend.position = "none"
+  )
+#ggsave("Lionfish vs graysby by region.pdf", width=12, height=7)
+ggsave("figures/reef_data/Lionfish vs graysby pairs plot.png")
 
 ######################################################
 ######################################################
