@@ -10,7 +10,7 @@ library(RColorBrewer)
 
 
 ### Jameal's quick and dirty plots for ICRS 2016 
-reef_dat <- clean_names(read_csv("data/REEF lionfish vs graysby 2010-2015.csv"), case = "") %>%
+reef_dat <- clean_names(read_csv("data/REEF lionfish vs graysby 2010-2015.csv")) %>%
   remove_empty(c("rows", "cols")) 
 names(reef_dat)
 glimpse(reef_dat)
@@ -105,20 +105,22 @@ ggplot(
         )
       )
     ) +
-  geom_point(aes(x=species, y=expert_den, colour = region, fill = region)) +
+  geom_point(aes(x=species, y=expert_den, colour = region, fill = region), size=2) +
   geom_path(aes(x=species, y=expert_den, group=region, colour = region)) +
   geom_text_repel(
     aes(x=species, y=expert_den, label=pretty_label, fontface=label_font, colour = region), 
     alpha=1,
     force = 0.75,
-    nudge_x = 2,
+    #nudge_x = 2,
     direction = "y",
     hjust = 0,
-    segment.size = 0.1) +
+    segment.size = 0.1,
+    size = 5) +
   stat_summary(aes(x=species, y=expert_den, colour=species),
                fun.data=mean_cl_normal,lty=2, size = 1.5,
                alpha=0.8, position=position_nudge(x = -0.1, y = 0)) + #position=position_dodge(width = 1),
   ylab("Expert Density")+
+  #ylim(0,2.6) +
   xlab("") +
   # scale_x_continuous(
   #   breaks = 1:2, labels = c("Graysby", "Lionfish"),
@@ -130,16 +132,17 @@ ggplot(
   theme_bw() +
   theme(
     text=element_text(size=18),
-    panel.grid.major = element_blank(),
-    panel.grid.minor = element_blank(),
-    panel.background = element_rect(fill = NA,colour = "black",size=2),
-    strip.background =   element_rect(fill = "black", colour = "black"),
-    strip.text.x =       element_text(colour="white",size=8),
-    strip.text.y =       element_text(angle = -90,colour="white",size=12),
-    legend.position = "none"
-  )
-#ggsave("Lionfish vs graysby by region.pdf", width=12, height=7)
-ggsave("figures/reef_data/Lionfish vs graysby pairs plot.png")
+        axis.text.x = element_text(size=18),
+        panel.grid.major = element_blank(),
+        panel.grid.minor = element_blank(),
+        panel.background = element_rect(fill = NA,colour = "black",size=2),
+        strip.background = element_rect(fill = "black", colour = "black"),
+        strip.text.x = element_text(colour="white",size=8),
+        strip.text.y = element_text(angle = -90,colour="white",size=12),
+        legend.position = "none"
+    )
+ggsave("figures/reef_data/Lionfish vs graysby by region pairs plot.pdf", width=9, height=7) #
+ggsave("figures/reef_data/Lionfish vs graysby pairs plot.png", width=9, height=7)
 
 ######################################################
 ######################################################
