@@ -229,8 +229,31 @@ top25 <- my_abund_means[order(my_abund_means$x, decreasing = TRUE),][1:25,]
 # from REEF readme: Density score (D) for each species is a weighted average index based on the frequency of observations in different abundance categories.  Density score is calculated as: D= ((nSx1)+(nFx2)+(nMx3)+(nAx4)) / (nS + nF  + nM + nA), where nS, nF, nM, and nA represented the number of times each abundance category (Single, Few, Many, Abundant) was assigned for a given species.  Values range from 1 to 4.
 
 #acs tinker
+library(ggpubr)
 
 d<-read.csv("data/REEF lionfish vs graysby 2010-2015_acs.csv")
 
-pivot_wider(d,Expert.Den)
+ggplot(data=d)+
+  geom_point(aes(x=Species, y=Expert.Den,group=Region),size=2) +
+  geom_path(aes(x=Species, y=Expert.Den,group=Region)) +
 
+  stat_summary(aes(x=Species, y=Expert.Den),
+               fun.data=mean_se,lty=1, size = 1,
+               alpha=0.8,colour="grey")+
+
+  ylab("Expert Density")+
+  theme_classic() +
+  theme(
+    text=element_text(size=10),
+    axis.text.x = element_text(size=10),
+    panel.grid.major = element_blank(),
+    panel.grid.minor = element_blank(),
+    # panel.background = element_rect(fill = NA,colour = "black",size=2),
+    # strip.background = element_rect(fill = "black", colour = "black"),
+    strip.text.x = element_text(colour="white",size=10),
+    strip.text.y = element_text(angle = -90,colour="white",size=12),
+    legend.position = "none"
+  )+
+  scale_x_discrete(expand=c(0.2, 0.2))
+
+ggsave("figures/reef_data/stier_pairs.pdf",width=3,height=3)
