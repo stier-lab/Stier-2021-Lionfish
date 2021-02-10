@@ -7,7 +7,8 @@ library(ggrepel)
 ## Load and Organize Data
 #######
 
-### Jameal's quick and dirty plots for ICRS 2016
+
+### Jameal's quick and dirty plots for ICRS 2016 
 reef_dat <- clean_names(read_csv("data/REEF lionfish vs graysby 2010-2015.csv"), case = "") %>%
   remove_empty(c("rows", "cols")) 
 names(reef_dat)
@@ -210,4 +211,10 @@ top25 <- my_abund_means[order(my_abund_means$x, decreasing = TRUE),][1:25,]
 
 # focus on Density score as response variable
 # from REEF readme: Density score (D) for each species is a weighted average index based on the frequency of observations in different abundance categories.  Density score is calculated as: D= ((nSx1)+(nFx2)+(nMx3)+(nAx4)) / (nS + nF  + nM + nA), where nS, nF, nM, and nA represented the number of times each abundance category (Single, Few, Many, Abundant) was assigned for a given species.  Values range from 1 to 4.
+
+#acs tinker
+
+d<-read.csv("data/REEF lionfish vs graysby 2010-2015_acs.csv")
+
+pivot_wider(d,Expert.Den)
 

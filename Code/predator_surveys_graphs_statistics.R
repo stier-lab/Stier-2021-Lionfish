@@ -419,9 +419,13 @@ ggplot(meanfishdf,aes(x = Fish,y=meanfish,group=Fish))+
 
 ggsave("figures/pred_survey/roving_pred_family.pdf",width=3,height=3)
 
-
+#one way anova site as replica
 summary(aov(meanfish~Fish,data=meanfishdf))
 
+#
+m<-glm(sumfish~Fish,data=sumfishdf,family=poisson)
+summary(m)
+anova(m,test="Chi")
 
 #sum by site across observers
 timed_pred_dat%>%
@@ -449,6 +453,10 @@ ggplot(timed_pred_dat, aes(x=Fish,y=Total,pch=Reef)) +
 
 timed_pred_dat$native.invasive <- ifelse(timed_pred_dat$Fish == "Pterois volitans","invasive","native")
 
+
+
+
+#ignoring observer
 m3 <- lme(data=timed_pred_dat,log(Total+1) ~ native.invasive, random= ~1|Reef)
 summary(m3)
 

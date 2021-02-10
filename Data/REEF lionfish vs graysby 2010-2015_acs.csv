@@ -1,0 +1,17 @@
+Region,Region,Species,Expert n,Expert SF%,Expert Den,Lat,Long
+Bermuda,1,Graysby,4,7.1,1.5,32.321384,-64.75737
+Gulf of Mexico,2,Graysby,128,24.9,1.8,23.634501,-102.552784
+Florida,3,Graysby,1951,56.9,1.9,25.230031,-80.504462
+"Bahamas, Turks and Caicos, Bermuda",4,Graysby,357,60,1.8,22.572203,-73.921468
+NW Caribbean,5,Graysby,3819,85.2,2.2,15.425136,-83.946559
+Greater Antilles & Virgin Islands,6,Graysby,507,82.7,2.1,19.627456,-69.348438
+Lesser Antilles,7,Graysby,584,75.5,2,16.140213,-61.662127
+Continental Caribbean and Brazil,8,Graysby,3528,93.7,2.5,10.884059,-73.69059
+Bermuda,1,Lionfish,4,7.1,1.5,32.321384,-64.75737
+Gulf of Mexico,2,Lionfish,116,22.6,1.9,23.634501,-102.552784
+Florida,3,Lionfish,696,20.3,1.5,25.230031,-80.504462
+"Bahamas, Turks and Caicos, Bermuda",4,Lionfish,272,45.7,1.8,22.572203,-73.921468
+NW Caribbean,5,Lionfish,1603,35.8,1.5,15.425136,-83.946559
+Greater Antilles & Virgin Islands,6,Lionfish,192,31.3,1.6,19.627456,-69.348438
+Lesser Antilles,7,Lionfish,298,38.5,1.9,16.140213,-61.662127
+Continental Caribbean and Brazil,8,Lionfish,1896,50.4,1.7,10.884059,-73.69059
