@@ -2,6 +2,7 @@ library(tidyverse)
 library(Hmisc)
 library(janitor)
 library(ggrepel)
+library(RColorBrewer)
 
 #######
 ## Load and Organize Data
@@ -84,6 +85,11 @@ ggsave("figures/reef_data/Lionfish vs graysby.png")
 ############# PAIRS PLOT FIGURE #####################
 ######################################################
 
+#https://ggrepel.slowkow.com/articles/examples.html
+#https://rdrr.io/cran/RColorBrewer/man/ColorBrewer.html
+
+#brewer.pal(n = 12, name = "Set3")[-c(1:2)]
+
 ggplot(
   reef_dat %>%
     mutate(
@@ -102,18 +108,25 @@ ggplot(
   geom_point(aes(x=species, y=expert_den, colour = region, fill = region)) +
   geom_path(aes(x=species, y=expert_den, group=region, colour = region)) +
   geom_text_repel(
-    aes(x=species, y=expert_den, label=pretty_label, colour = region, fontface=label_font),
-    alpha=0.8,
+    aes(x=species, y=expert_den, label=pretty_label, fontface=label_font, colour = region), 
+    alpha=1,
     force = 0.75,
-    nudge_x = 1.5,
+    nudge_x = 2,
     direction = "y",
-    hjust = 1,
+    hjust = 0,
     segment.size = 0.1) +
-  stat_summary(aes(x=species, y=expert_den),
-               fun.data=mean_cl_normal,lty=2, position=position_dodge(width = 1),
-               alpha=0.2) +
+  stat_summary(aes(x=species, y=expert_den, colour=species),
+               fun.data=mean_cl_normal,lty=2, size = 1.5,
+               alpha=0.8, position=position_nudge(x = -0.1, y = 0)) + #position=position_dodge(width = 1),
   ylab("Expert Density")+
-  xlab("Species") +
+  xlab("") +
+  # scale_x_continuous(
+  #   breaks = 1:2, labels = c("Graysby", "Lionfish"),
+  #   expand = expansion(mult = 0.5)
+  # ) +
+  scale_x_discrete(expand = expansion(mult = c(0.3,2))) + 
+  scale_colour_manual(values = brewer.pal(n = 12, name = "Set3")[-c(1:2)]) + #palette = "Blues", direction = -1, brewer.pal(n = (length(unique(reef_dat$region))+2), name = "Set3")
+  scale_fill_manual(values = brewer.pal(n = 12, name = "Set3")[-c(1:2)]) + #palette = "Blues", direction = -1, brewer.pal(n = (length(unique(reef_dat$region))+2), name = "Set3")
   theme_bw() +
   theme(
     text=element_text(size=18),
