@@ -87,6 +87,8 @@ ggsave("figures/reef_data/Lionfish vs graysby.png")
 
 #https://ggrepel.slowkow.com/articles/examples.html
 #https://rdrr.io/cran/RColorBrewer/man/ColorBrewer.html
+#Color Palettes Based on Fish Species • fishualize
+#https://nschiett.github.io/fishualize/index.html
 
 #brewer.pal(n = 12, name = "Set3")[-c(1:2)]
 
@@ -105,8 +107,8 @@ ggplot(
         )
       )
     ) +
-  geom_point(aes(x=species, y=expert_den, colour = region, fill = region), size=2) +
-  geom_path(aes(x=species, y=expert_den, group=region, colour = region)) +
+  geom_point(aes(x=species, y=expert_den, colour = region, fill = region), size=2) + #, position=position_nudge(x = -0.2, y = 0)
+  geom_path(aes(x=species, y=expert_den, group=region, colour = region)) + #, position=position_nudge(x = -0.2, y = 0)
   geom_text_repel(
     aes(x=species, y=expert_den, label=pretty_label, fontface=label_font, colour = region), 
     alpha=1,
