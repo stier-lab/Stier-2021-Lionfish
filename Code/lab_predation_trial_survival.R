@@ -13,6 +13,19 @@ x=read.csv("data/js_as_expt1.csv")
 #drop one NA row
 x<-x[-16,]
 
+# make table of sample sizes by treatment and trial
+
+x %>%
+  group_by(trial, ttt_2) %>%
+  summarise(
+    n = n()
+  ) %>% 
+  pivot_wider(
+    names_from = trial,
+    values_from = n,
+    names_prefix = "Number of replicates: trial "
+  )
+
 #get rid of dead gobies
 x$t0_alive<-10-x$dead
 x$mort<-x$eaten/x$t0_alive
